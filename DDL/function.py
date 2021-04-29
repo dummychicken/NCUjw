@@ -20,7 +20,7 @@ def SamplingCourse(file):
     for i in range(len(column)):
         hashmapClass[column[i]] = hashmapClass.get(column[i],0) + 1
     sortedCourse = sorted(hashmapClass.items(), key=lambda d:d[1], reverse = True)
-    return sortedCourse[15:50]
+    return sortedCourse[15:500]
 
 # 找出共同能考试的时间
 def findCommonTime(temp, listClass):
@@ -29,8 +29,43 @@ def findCommonTime(temp, listClass):
         commonTime.append(temp[i] & listClass[i])
     return commonTime
 
-# 尽可能使考试平均分布
+# 尽可能使考试平均分布，优先每天安排一场，其次一天两场，最后没办法一天三场。
 def optimalTime(temp):
+    temp_list_hfday = [temp[i:i+2] for i in range(0,len(temp),2)]
+    temp_list_oneday = [temp[i:i+4] for i in range(0,len(temp),4)]
+    for inx,val in enumerate(temp_list_oneday):
+        if sum(val) < 4:
+            continue
+        else:
+            return inx * 4 + np.random.randint(0,4)
+    rd = np.random.choice(len(temp)//2,len(temp)//2,replace=False)
+    for i in rd:
+        if sum(temp_list_hfday[i]) < 2:
+            continue
+        elif len(temp) % 2 == 0:
+            return i * 2 + np.random.randint(0,2)
+        else:
+            return i * 2
+    k = np.random.choice(len(temp),len(temp),replace=False)
+    for i in k:
+        if temp[i] == 1:
+            return i
+
+''' 
+
+    for inx,val in enumerate(temp_list_hfday):
+        if sum(val) < 2:
+            continue
+        else:
+            return inx * 2 + np.random.randint(0,2)
+    k = np.random.randint(0,len(temp))
+    while True:
+        if temp[k] == 1:
+            return k
+        else:
+            k = np.random.randint(0,len(temp))
+       
+def optimalTime(temp):        
     pt1 = 0
     pt2 = len(temp)
     while pt1 != pt2-1:
@@ -39,10 +74,11 @@ def optimalTime(temp):
             pt1 = mid
         else:
             pt2 = mid
+        #if pt2 - pt1 <
     if sum(temp[pt1: pt1+2]) <= 1:
         return temp.index(1)
     else:
-        return pt1
+        return pt1'''  
 
 # 将结果写入表中
 def writeToCsv(time, course, classes, number, teacher, college):
@@ -87,12 +123,11 @@ def unitedClass(strClass):
 # '土木工程（建筑工程方向）[181-3]班,土木工程（地下工程方向）181班' ——>
 # '土木工程（建筑工程方向）181班,土木工程（建筑工程方向）182班,土木工程（建筑工程方向）183班,土木工程（地下工程方向）181班'   
 def pre_split_class(data):
-    class_name = data["ci_class_name"]
-    for inx, val in enumerate(class_name):
-        st = ''
-        for s in unitedClass(str(val)):
-            st = st + s + ","
-        data.iloc[inx,2] = st[:-1]
+    #print(data)
+    st = ''
+    for s in unitedClass(str(data)):
+         st = st + s + ","
+    return st[:-1]
 
 # 这里是在定义拆分规则
 # 可以人数超出阈值, 则拆分班级, 如果人数没有超过, 就不拆

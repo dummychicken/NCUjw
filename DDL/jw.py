@@ -23,7 +23,7 @@ threshold = cf.get_threshold()
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--loadCourseFile", default=None, type=str, required=True, help="输入待排课表位置"
+    "--loadCourseFile", default="class.csv", type=str, required=False, help="输入待排课表位置"
     )
 
 args = parser.parse_args()
@@ -32,8 +32,8 @@ data = pd.read_csv(args.loadCourseFile, usecols=["ci_course_no","ci_class_name",
 
 #data = fn.getDF(sql_data)
 
-# 数据预处理模板
-fn.pre_split_class(data) # 拆分同一行内按类似“1-3”的班级
+# 数据预处理模板 拆分同一行内按类似“1-3”的班级
+data["ci_class_name"] = data["ci_class_name"].apply(fn.pre_split_class) 
 
 # 读取当前资源表
 dictTeacherTime = fn.csv2dict("TeacherSource.csv")
@@ -74,8 +74,9 @@ for courseNumber in fn.SamplingCourse(args.loadCourseFile):
     classWhoTakeCourse = []
     classCourseNumber = []
     unitClass = []
-    classTeacherList = []
+    #classTeacherList = []
     indexList = []
+    unitTeacher = []
 
     for i,cl_name,cl_num,cl_ter,cl_co in zip(data.index,data["ci_class_name"],data["ci_student_number"],data["ci_teacher_name"],data["ci_course_no"].values):
         # 查找每一个考这门课的班级
@@ -98,11 +99,9 @@ for courseNumber in fn.SamplingCourse(args.loadCourseFile):
                 unitClass.append(className)
             
             classTeacher = cl_ter
-            classTeacherList.append(classTeacher)
+            #classTeacherList.append(classTeacher)
             
             # 接下取监考老师的公共时间
-            unitTeacher = []
-            classTeacher = cl_ter
             if ":" in classTeacher:
                 teachersList = classTeacher.split(":")
                 for teacher in teachersList:
