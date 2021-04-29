@@ -12,13 +12,20 @@ from sqlalchemy import create_engine
 period = cf.get_period
 
 # 按照每门课程的考试班级数目进行排序
-def SamplingCourse(file):
+'''def SamplingCourse1(file):
     with open(file,"r",encoding="UTF-8") as f:
         reader = csv.reader(f)
         column = [row[0] for row in reader]
     hashmapClass = {}
     for i in range(len(column)):
         hashmapClass[column[i]] = hashmapClass.get(column[i],0) + 1
+    sortedCourse = sorted(hashmapClass.items(), key=lambda d:d[1], reverse = True)
+    return sortedCourse[15:500]'''
+
+def SamplingCourse(column):
+    hashmapClass = {}
+    for i in column["ci_course_no"]:
+        hashmapClass[i] = hashmapClass.get(i,0) + 1
     sortedCourse = sorted(hashmapClass.items(), key=lambda d:d[1], reverse = True)
     return sortedCourse[15:500]
 
