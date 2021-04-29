@@ -1,5 +1,4 @@
 import csv
-import re
 import time as ti
 
 import numpy as np
@@ -25,7 +24,8 @@ data = pd.read_csv("test\class.csv", usecols=["ci_course_no","ci_class_name","ci
 #data = fn.getDF(sql_data)
 
 # 数据预处理模板
-fn.pre_split_class(data) # 拆分同一行内按类似“1-3”的班级
+#fn.pre_split_class(data) # 拆分同一行内按类似“1-3”的班级
+data["ci_class_name"] = data["ci_class_name"].apply(fn.pre_split_class) # 拆分同一行内按类似“1-3”的班级
 
 # 建立每个老师和时间的联系
 dictTeacherTime = {}
@@ -64,6 +64,7 @@ for courseNumber in fn.SamplingCourse("test\class.csv"):
     unitClass = []
     classTeacherList = []
     indexList = []
+    unitTeacher = []
 
     for i,cl_name,cl_num,cl_ter,cl_co in zip(data.index,data["ci_class_name"],data["ci_student_number"],data["ci_teacher_name"],data["ci_course_no"].values):
         # 查找每一个考这门课的班级
@@ -89,8 +90,6 @@ for courseNumber in fn.SamplingCourse("test\class.csv"):
             classTeacherList.append(classTeacher)
             
             # 接下取监考老师的公共时间
-            unitTeacher = []
-            classTeacher = cl_ter
             if ":" in classTeacher:
                 teachersList = classTeacher.split(":")
                 for teacher in teachersList:
@@ -102,7 +101,7 @@ for courseNumber in fn.SamplingCourse("test\class.csv"):
     
     # 去除重复老师
     unitTeacher = list(set(unitTeacher))
-    
+    #print(len(unitTeacher))
 
     # 两个公共时间相与
     temp = fn.findCommonTime(tempTeacher,temp)
@@ -122,7 +121,7 @@ for courseNumber in fn.SamplingCourse("test\class.csv"):
     di = 0
     if len(unitTeacher) < courseNumber[1]:
         di = courseNumber[1] - len(unitTeacher)
-        print(courseNumber[0]+"课程，当前老师不足，缺少"+courseNumber[0]+"个，用-1代替")
+        print(courseNumber[0]+"课程，当前老师不足，缺少"+str(courseNumber[1])+" - "+str(len(unitTeacher))+" = "+str(di)+"个，用-1代替")
         di_list = ["-1"]*di
         unitTeacher.extend(di_list)
 
