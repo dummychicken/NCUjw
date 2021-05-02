@@ -5,10 +5,13 @@ import time as ti
 import numpy as np
 import pandas as pd
 import argparse
-
+import pymysql
+import warnings
+warnings.filterwarnings("ignore")
 import function as fn
-from config import Config as cf
 
+from config import Config as cf
+from itertools import product
 
 #st_time = ti.time()
 period = cf.get_period()
@@ -25,6 +28,9 @@ parser.add_argument(
     "--class_inf", default="classs_inf",type=str, required=True, help="待输入排考表名"
     )
 
+parser.add_argument(
+    "--outputFile",default="排考最终结果.csv", type=str, required=True, help="输入输出文件名"
+)
 args = parser.parse_args()
 
 
@@ -148,6 +154,93 @@ def main(args):
     fn.dict2csv(dictTeacherTime,"TeacherSource.csv")
     fn.dict2csv(dictStudentTime,"StudentSource.csv")
 
+#===== 连接数据库=====#
+    conn = pymysql.connect(
+        host = '123.60.11.177',
+        port = 3306,
+        user = 'root',
+        password = 'ncu@jw114',
+        db = 'examArrange1',
+        charset='utf8'
+        )
+    cur = conn.cursor()
+    cur.execute("SELECT column_name FROM information_schema.columns WHERE (table_name = 'classroom_inf_new') AND (ordinal_position >= 1) order by ordinal_position")
+    classroom_inf_new_columns=fn.get_columns(cur.fetchall())
+    cur.execute("SELECT * FROM classroom_inf_new")
+    classroom_inf_new=pd.DataFrame(cur.fetchall(),columns=classroom_inf_new_columns)
+    conn.close()
+
+    temp=pd.read_csv("./temp.csv",names=["ci_course_no","test_time","ci_class_name","ci_student_number","ci_teacher_name","ci_class_unit"])
+    temp.insert(0,"index",temp.index.values)
+
+    res = list(product(classroom_inf_new.loc[:,["教学楼名称","房间号","座位数"]].values.tolist(),range(period)))
+    dm_classroom_state_new=fn.get_dm_classroom_state_new(res)
+
+    D=dm_classroom_state_new
+    zhujiao_D=D[D["cr_building"]=="教学主楼"] #后面是要从数据库中读取
+    gonggong_temp=temp[temp["ci_class_unit"]=="公共课排课"]
+    jiangong_D=D[D["cr_building"]=="建工楼"]
+    jiangong_temp=temp[temp["ci_class_unit"]=="建筑工程学院"]
+    xingong_D=D[D["cr_building"]=="信工楼"]
+    xingong_temp=temp[temp["ci_class_unit"]=="信工学院"]
+    jidian_D=D[D["cr_building"]=="机电楼"]
+    jidian_temp=temp[temp["ci_class_unit"]=="机电学院"]
+    lisheng_D=D[D["cr_building"]=="理生楼"]
+    lisheng_temp=temp[(temp["ci_class_unit"]=="理学院")|(temp["ci_class_unit"]=="生命学院")]
+    huanjing_D=D[D["cr_building"]=="环境楼"]
+    huanjing_temp=temp[temp["ci_class_unit"]=="环化学院"]
+    cailiao_D=D[D["cr_building"]=="材料楼"]
+    cailiao_temp=temp[temp["ci_class_unit"]=="材料学院"]
+    renwen_D=D[D["cr_building"]=="人文楼"]
+    renwen_temp=temp[temp["ci_class_unit"]=="人文学院"]
+    faxue_D=D[D["cr_building"]=="法学楼"]
+    faxue_temp=temp[temp["ci_class_unit"]=="法学院"]
+    waijing_D=D[D["cr_building"]=="外经楼"]
+    waijing_temp=temp[(temp["ci_class_unit"]=="外语学院")|(temp["ci_class_unit"]=="经管学院")]
+
+
+    gonggongalldata,cannt_find_class_id=fn.schedule_algorithm(zhujiao_D,gonggong_temp)
+    gonggongoutdata=gonggongalldata[gonggongalldata.cr_state==0]
+
+    jiangongalldata,jiangongcannt_find_class_id=fn.schedule_algorithm(jiangong_D,jiangong_temp)
+    jiangongoutdata=jiangongalldata[jiangongalldata.cr_state==0]
+    #机电
+    jidianalldata,jidiancannt_find_class_id=fn.schedule_algorithm(jidian_D,jidian_temp)
+    jidianoutdata=jidianalldata[jidianalldata.cr_state==0]
+    #信工
+    xingongalldata,xingongcannt_find_class_id=fn.schedule_algorithm(xingong_D,xingong_temp)
+    xingongoutdata=xingongalldata[xingongalldata.cr_state==0]
+    #理生
+    lishengalldata,lishengcannt_find_class_id=fn.schedule_algorithm(lisheng_D,lisheng_temp)
+    lishengoutdata=lishengalldata[lishengalldata.cr_state==0]
+    #环境
+    huanjingalldata,huanjingcannt_find_class_id=fn.schedule_algorithm(huanjing_D,huanjing_temp)
+    huanjingoutdata=huanjingalldata[huanjingalldata.cr_state==0]
+    #材料
+    cailiaoalldata,cailiaocannt_find_class_id=fn.schedule_algorithm(cailiao_D,cailiao_temp)
+    cailiaooutdata=cailiaoalldata[cailiaoalldata.cr_state==0]
+    #人文
+    renwenalldata,renwencannt_find_class_id=fn.schedule_algorithm(renwen_D,renwen_temp)
+    renwenoutdata=renwenalldata[renwenalldata.cr_state==0]
+    #外经
+    waijingalldata,waijingcannt_find_class_id=fn.schedule_algorithm(waijing_D,waijing_temp)
+    waijingoutdata=waijingalldata[waijingalldata.cr_state==0]
+    #法学
+    faxuealldata,faxuecannt_find_class_id=fn.schedule_algorithm(faxue_D,faxue_temp)
+    faxueoutdata=faxuealldata[faxuealldata.cr_state==0]
+
+    dfoutdata = pd.concat([gonggongoutdata,jiangongoutdata,jidianoutdata,xingongoutdata,lishengoutdata,huanjingoutdata,cailiaooutdata,renwenoutdata,waijingoutdata,faxueoutdata], axis = 0, ignore_index = False, join = "outer")
+    dfcannt_find_class_id=(cannt_find_class_id+jiangongcannt_find_class_id+jidiancannt_find_class_id+xingongcannt_find_class_id+lishengcannt_find_class_id+huanjingcannt_find_class_id+cailiaocannt_find_class_id+renwencannt_find_class_id+waijingcannt_find_class_id+faxuecannt_find_class_id)
+
+    dfalldata = pd.concat([gonggongalldata,waijingalldata,faxuealldata,renwenalldata,jiangongalldata,jidianalldata,xingongalldata,cailiaoalldata,huanjingalldata,lishengalldata], axis = 0, ignore_index = False, join = "outer")
+
+    dfoutdata=dfoutdata.rename(columns={"state_id":"index"})
+    df=pd.merge(temp,dfoutdata,how='inner',on=["index"]).iloc[:,[1,2,3,4,5,8,7]]
+    cannt_temp=temp[temp.apply(lambda x:x[0] in dfcannt_find_class_id,axis=1)]
+
+
+    df.to_csv(args.outputFile)
+    cannt_temp.to_csv("canntArrangeClass.csv")
     return print("Exam ready")
 
 if __name__ == "__main__":

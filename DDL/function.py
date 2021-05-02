@@ -198,7 +198,7 @@ def writeImperfect(index,TeacherList,data):
             for unit in range(len(data.iloc[0])):
                 writeUnitRow.append(data.iloc[index[i]][unit])
             rows.append(writeUnitRow)
-    with open("test\imperfect.csv","a",encoding = "utf-8",newline="") as csvfile:
+    with open("monitorNotTeacher.csv","a",encoding = "utf-8",newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)
 
@@ -270,3 +270,58 @@ def uploadCsv(file):
 #         conn.commit() # 提交数据
 #         cursor.close() # 关闭游标
 #         conn.close() # 关闭数据库
+
+def get_columns(info_COLUMNS):
+    lst=[]
+    for i in info_COLUMNS:
+        lst.append(i[0])
+    return lst
+
+
+def get_dm_classroom_state_new(res):
+    cr_building=[]
+    cr_name=[]
+    cr_testseat=[]
+    for i in np.array(res)[:,0]:
+        cr_building.append(i[0])
+        cr_name.append(i[1])
+        cr_testseat.append(i[2])
+    dm_classroom_state_new=np.c_[cr_building,cr_name,cr_testseat,np.array(res)[:,1]]
+    dm_classroom_state_new=pd.DataFrame(dm_classroom_state_new,columns=["cr_building","cr_name","cr_testseat","mti_no"])
+    dm_classroom_state_new["cr_state"]=1
+    return dm_classroom_state_new.reset_index().rename(columns={"index":"state_id"})
+
+
+def get_test_time_room(new_D,test_time):
+    test_time_room=new_D[(new_D.mti_no==test_time)&(new_D.cr_state==1)].cr_name.values
+    return test_time_room
+def fill_bz(new_D,room_name,test_time):
+    new_D.loc[(new_D.cr_name==room_name)&(new_D.mti_no==test_time),"cr_state"]=0
+    return 0
+#当前的教室对应的班级index
+def change_state_id(new_D,room_name,test_time,i):
+    new_D.iloc[new_D[(new_D.cr_name==room_name)&(new_D.mti_no==test_time)].index[0]-new_D.index.min(),0]=i
+    return 0
+#判断当前考场是否安排
+def classroom_isbz(new_D,cr_name,time_no):
+    return (new_D[(new_D.cr_name==cr_name)&(new_D.mti_no==time_no)].cr_state==0).values==False
+#判断当前时段的教室是否符合当前的课程
+def student_num_fit(new_D,cr_names,cl_num):
+    cr_num=int(new_D[new_D.cr_name==cr_names].cr_testseat.values[0])//2
+    if (cr_num>=cl_num and cr_num/2<=cl_num):
+        return True
+    else:
+        return False
+
+def schedule_algorithm(D,temp):
+    cannt_find_class_id=[]
+    for i,cl_num,test_time in zip(temp["index"],temp.ci_student_number,temp.test_time):
+        test_time_room=get_test_time_room(D,test_time)                    
+        for room_name in test_time_room:
+            if classroom_isbz(D,room_name,test_time) and student_num_fit(D,room_name,cl_num):
+                fill_bz(D,room_name,test_time)
+                change_state_id(D,room_name,test_time,i)
+                break
+        else:
+            cannt_find_class_id.append(i)
+    return D,cannt_find_class_id

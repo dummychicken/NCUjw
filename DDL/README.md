@@ -29,38 +29,42 @@
 
 ### 传参
 
-在进行排课之前，需要对所有资源进行初始化
+先对数据初始化 初始化命令行参数含义如图所示
 
-对应含义查询
+​	![argsMeaning](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\argsMeaning.png)
 
-```python
-python preProcess.py -h 
+生成课表命令行参数含义如图所示
+
+![image-20210502203116998](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502203116998.png)	
+
+**传参格式**
+
+需要进行初始化的命令行
+
+```shell
+python preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
 ```
 
-所得说明
+生成排课表的命令行 其中classs_inf 是数据库中的待排课表
 
-![image-20210429023553079](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20210429023553079.png)
-
- 对应命令行为
-
-```python
-python preProcess.py --loadTeacherFile data/teacher_inf.csv --loadStudentFile data/student_inf.csv		
+```shell
+python main.py --class_inf classs_inf --outputFile final.csv
 ```
 
+### 文件结构一览
 
+![image-20210502202158614](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502202158614.png)	
 
-传入待排考课表
+**必须建立在当前文件夹下建立 data 文件夹**
 
-```python
-python jw.py --loadCourseFile class.csv
-```
+初始化命令行之后 生成文件结构为
 
+![image-20210502202456637](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502202456637.png)	
 
+其中 TeacherSource.csv 和 StudentSource.csv 记录了教师和学生的状态
 
-有一些小问题
+运行main.py 文件之后文件结构为
 
-在尝试写入数据库的时候，响应时间过长, 写得非常慢
+![image-20210502203142426](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502203142426.png)	
 
-![image-20210429040353503](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20210429040353503.png)	
-
-这个问题我过会解决
+其中 canntArrangeClass.csv 记录了找不到合适教室的班级情况
