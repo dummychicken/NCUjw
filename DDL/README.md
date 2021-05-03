@@ -93,11 +93,11 @@ python main.py --class_inf commonClass --outputFile commonClass.csv
 
 其中无可用教室的写入文件
 
-![image-20210503214016378](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210503214016378.png)	
+![image-20210503214016378](https://github.com/dummychicken/NCUjw/blob/master/DDL/photo/image-20210503214016378.png)	
 
 生成对应排课结果为
 
-![image-20210503215124400](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20210503215124400.png)	
+![image-20210503215124400](https://github.com/dummychicken/NCUjw/blob/master/DDL/photo/image-20210503215124400.png)	
 
 进行专业课排课，比如经管学院
 
