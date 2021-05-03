@@ -50,13 +50,17 @@
 需要进行初始化的命令行
 
 ```shell
-python preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+```
+或者使用默认的参数配置
+```shell
+python3 preProcess.py
 ```
 
 生成排课表的命令行 其中classs_inf 是数据库中的待排课表
 
 ```shell
-python main.py --class_inf classs_inf --outputFile final.csv
+python3 main.py --class_inf classs_inf --outputFile final.csv
 ```
 
 ### 文件结构一览
@@ -82,13 +86,17 @@ python main.py --class_inf classs_inf --outputFile final.csv
 刚开始需要初始化，输入命令行
 
 ```shell
-python preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+```
+或者使用默认的参数配置
+```shell
+python3 preProcess.py
 ```
 
 进行公共课排课，输入命令行
 
 ```shell
-python main.py --class_inf commonClass --outputFile commonClass.csv
+python3 main.py --class_inf commonClass --outputFile commonClass.csv
 ```
 
 其中无可用教室的写入文件
@@ -102,13 +110,13 @@ python main.py --class_inf commonClass --outputFile commonClass.csv
 进行专业课排课，比如经管学院
 
 ```shell
-python main.py --class_inf economy --outputFile economyClass.csv
+python3 main.py --class_inf economy --outputFile economyClass.csv
 ```
 
 可再次进行专业课排课，比如信息工程学院
 
 ```shell
-python main.py --class_inf informationEngineer --outputFile information.csv
+python3 main.py --class_inf informationEngineer --outputFile information.csv
 ```
 
  
