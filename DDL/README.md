@@ -17,6 +17,14 @@
 | ci_specify_time      | 指定时段         | 1（根据时段表，默认为-1）                                    |
 | ci_sprcify_classroom | 指定区域         | 慧园楼（信工楼，建工，，默认为-1）                           |
 
+数据库对应格式为：
+
+![image-20210503195121870](./photo/image-20210503195121870.png)
+
+![image-20210503195151729](./photo/image-20210503195151729.png)	
+
+
+
  给出来的课表中学院名称必须为全称
 
 ```
@@ -31,40 +39,89 @@
 
 先对数据初始化 初始化命令行参数含义如图所示
 
-​	![argsMeaning](photo\argsMeaning.png)
+​	![argsMeaning](./photo/argsMeaning.png)
 
 生成课表命令行参数含义如图所示
 
-![image-20210502203116998](photo\image-20210502203116998.png)	
+![image-20210502203116998](./photo/image-20210502203116998.png)	
 
 **传参格式**
 
 需要进行初始化的命令行
 
 ```shell
-python preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+```
+
+或者直接采用默认设置
+
+```shell
+python3 preProcess.py
 ```
 
 生成排课表的命令行 其中classs_inf 是数据库中的待排课表
 
 ```shell
-python main.py --class_inf classs_inf --outputFile final.csv
+python3 main.py --class_inf classs_inf --outputFile final.csv
 ```
 
 ### 文件结构一览
 
-![image-20210502202158614](photo\image-20210502202158614.png)	
+![image-20210502202158614](./photo/image-20210502202158614.png)	
 
 **必须建立在当前文件夹下建立 data 文件夹**
 
 初始化命令行之后 生成文件结构为
 
-![image-20210502202456637](photo\image-20210502202456637.png)	
+![image-20210502202456637](./photo/image-20210502202456637.png)	
 
 其中 TeacherSource.csv 和 StudentSource.csv 记录了教师和学生的状态
 
 运行main.py 文件之后文件结构为
 
-![image-20210502203142426](photo\image-20210502203142426.png)	
+![image-20210502203142426](./photo/image-20210502203142426.png)	
 
 其中 canntArrangeClass.csv 记录了找不到合适教室的班级情况
+
+### 示例
+
+刚开始需要初始化，输入命令行 
+
+```shell
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+```
+
+或者使用默认设置
+
+```
+python3 preProcess.py
+```
+
+进行公共课排课，输入命令行
+
+```shell
+python3 main.py --class_inf commonClass --outputFile commonClass.csv
+```
+
+其中无可用教室的写入文件
+
+![image-20210503214016378](./photo/image-20210503214016378.png)	
+
+生成对应排课结果为
+
+![image-20210503215124400](./photo/image-20210503215124400.png)	
+
+进行专业课排课，比如经管学院
+
+```shell
+python3 main.py --class_inf economy --outputFile economyClass.csv
+```
+
+可再次进行专业课排课，比如信息工程学院
+
+```shell
+python3 main.py --class_inf informationEngineer --outputFile information.csv
+```
+
+ 
+

@@ -42,7 +42,7 @@ def main(args):
     data = fn.getDF(sql)
     #data = pd.read_csv(args.loadCourseFile, usecols=["ci_course_no","ci_class_name","ci_student_number","ci_teacher_name","ci_class_dep"])
   
-    #数据预处理模板 拆分同一行内按类似“1-3”的班级
+    # 数据预处理模板 拆分同一行内按类似“1-3”的班级
     data["ci_class_name"] = data["ci_class_name"].apply(fn.pre_split_class) 
 
     # 读取当前资源表
@@ -156,11 +156,11 @@ def main(args):
 
 #===== 连接数据库=====#
     conn = pymysql.connect(
-        host = '123.60.11.177',
-        port = 3306,
-        user = 'root',
-        password = 'ncu@jw114',
-        db = 'examArrange1',
+        host = cf.get_host(),
+        port = int(cf.get_port()),
+        user = cf.get_user(),
+        password = cf.get_password(),
+        db = cf.get_db(),
         charset='utf8'
         )
     cur = conn.cursor()
