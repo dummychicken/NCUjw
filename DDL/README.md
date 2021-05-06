@@ -31,11 +31,11 @@
 
 先对数据初始化 初始化命令行参数含义如图所示
 
-​	![argsMeaning](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\argsMeaning.png)
+​	![argsMeaning](photo\argsMeaning.png)
 
 生成课表命令行参数含义如图所示
 
-![image-20210502203116998](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502203116998.png)	
+![image-20210502203116998](photo\image-20210502203116998.png)	
 
 **传参格式**
 
@@ -53,18 +53,18 @@ python main.py --class_inf classs_inf --outputFile final.csv
 
 ### 文件结构一览
 
-![image-20210502202158614](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502202158614.png)	
+![image-20210502202158614](photo\image-20210502202158614.png)	
 
 **必须建立在当前文件夹下建立 data 文件夹**
 
 初始化命令行之后 生成文件结构为
 
-![image-20210502202456637](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502202456637.png)	
+![image-20210502202456637](photo\image-20210502202456637.png)	
 
 其中 TeacherSource.csv 和 StudentSource.csv 记录了教师和学生的状态
 
 运行main.py 文件之后文件结构为
 
-![image-20210502203142426](C:\Users\lenovo\Desktop\LastVision\NCUjw\DDL\photo\image-20210502203142426.png)	
+![image-20210502203142426](photo\image-20210502203142426.png)	
 
 其中 canntArrangeClass.csv 记录了找不到合适教室的班级情况
