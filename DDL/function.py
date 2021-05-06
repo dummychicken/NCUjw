@@ -10,6 +10,12 @@ from config import Config as cf
 from sqlalchemy import create_engine
 
 period = cf.get_period
+host = cf.get_host()
+port = cf.get_port()
+user = cf.get_user()
+password = cf.get_password()
+db = cf.get_db()
+connURL = 'mysql+pymysql://' + user + ":" + password + '@' + host + ':' + port + '/' + db
 
 # 按照每门课程的考试班级数目进行排序
 '''def SamplingCourse1(file):
@@ -243,13 +249,13 @@ def dict2csv(dict, file):
 #         w.writerow(dict.values())
 
 def getDF(sql):   # 'mysql+pymysql://root:123456@123.60.8.234:3306/examArrange1'
-    engin = create_engine('mysql+pymysql://root:ncu@jw114@123.60.11.177:3306/examArrange1')
+    engin = create_engine(connURL)
     df = pd.read_sql_query(sql, engin)
 
     return df
 
 def uploadCsv(file):
-    engine = create_engine('mysql+pymysql://root:ncu@jw114@123.60.11.177:3306/examArrange1')
+    engine = create_engine(connURL)
     df = pd.read_csv(file, sep=',')
     df.to_sql(file[:-4], con = engine, if_exists='replace',index= False)
 
