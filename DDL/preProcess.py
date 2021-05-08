@@ -36,11 +36,11 @@ def dict2csv(dict, file):
 
 def from_mysql_get_all_info(argsYear, argsName):
     conn = pymysql.connect(
-        host='123.60.11.177',
-        port=3306,
-        user='root',
-        db='examArrange1',
-        password='ncu@jw114',
+        host = cf.get_host(),
+        port = int(cf.get_port()),
+        user = cf.get_user(),
+        password = cf.get_password(),
+        db = cf.get_db(),
         charset='utf8mb4')
     cursor = conn.cursor()
     sql = 'select * from ' + argsName + ' where 所属年度 > ' + str(int(argsYear) - 4)
@@ -52,11 +52,11 @@ def from_mysql_get_all_info(argsYear, argsName):
 
 def from_mysql_get_teacher_info(teacherTableName):
     conn = pymysql.connect(
-        host='123.60.11.177',
-        port=3306,
-        user='root',
-        db='examArrange1',
-        password='ncu@jw114',
+        host = cf.get_host(),
+        port = int(cf.get_port()),
+        user = cf.get_user(),
+        password = cf.get_password(),
+        db = cf.get_db(),
         charset='utf8mb4')
     cursor = conn.cursor()
     sql = 'select * from ' + teacherTableName
@@ -79,15 +79,15 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument(
-        "--loadTeacherTable", default=None, type=str, required=True, help="输入教师总表名称"
+        "--loadTeacherTable", default="teacher_inf", type=str, required=False, help="输入教师总表名称"
         )
 
     parser.add_argument(
-        "--loadStudentTable", default=None, type=str, required=True, help="输入班级总表名称"
+        "--loadStudentTable", default="student_info", type=str, required=False, help="输入班级总表名称"
     )
 
     parser.add_argument(
-        "--loadStudentYear", default=None, type=str, required=True, help="输入最新一届班级所属年度"
+        "--loadStudentYear", default="2020", type=str, required=False, help="输入最新一届班级所属年度"
         )
     args = parser.parse_args()
     
@@ -102,5 +102,8 @@ def main():
     studentDict = initialSourceDict("data/student_inf.csv", period)
     dict2csv(teacherDict,"TeacherSource.csv")
     dict2csv(studentDict,"StudentSource.csv")
+    print("Ready")
 
-main()
+if __name__ == "__main__":
+    main()
+    
