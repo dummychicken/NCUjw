@@ -113,6 +113,18 @@ python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_
 python3 preProcess.py
 ```
 
+重置所有楼栋状态（默认）
+
+```bash
+python3 init_classroom_state.py 
+```
+
+或者重置指定楼栋状态（支持单多选，中间用英文逗号隔开。）
+
+```
+python3 init_classroom_state.py --building 教学主楼,信工楼
+```
+
 进行公共课排课，输入命令行
 
 ```shell
