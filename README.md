@@ -17,6 +17,14 @@
 | ci_specify_time      | 指定时段         | 1（根据时段表，默认为-1）                                    |
 | ci_sprcify_classroom | 指定区域         | 慧园楼（信工楼，建工，，默认为-1）                           |
 
+数据库对应格式为：
+
+![image-20210503195121870](./photo/image-20210503195121870.png)
+
+![image-20210503195151729](./photo/image-20210503195151729.png)	
+
+
+
  给出来的课表中学院名称必须为全称
 
 ```
@@ -29,38 +37,104 @@
 
 ### 传参
 
-在进行排课之前，需要对所有资源进行初始化
+先对数据初始化 初始化命令行参数含义如图所示
 
-对应含义查询
+​	![argsMeaning](./photo/argsMeaning.png)
 
-```python
-python preProcess.py -h 
+主函数命令行参数含义如图所示，building 选项是除了主教以外，需要新增的楼栋资源。
+
+![image-20210508163324262](./photo/image-20210508163324262.png)初始化教室状态表，默认重置所有楼栋教室状态（慎用）。
+
+![image-20210508163115854](./photo/image-20210508163115854.png)
+
+**传参格式**
+
+需要进行初始化的命令行
+
+```shell
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
 ```
 
-所得说明
+或者直接采用默认设置
 
-![image-20210429023553079](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20210429023553079.png)
-
- 对应命令行为
-
-```python
-python preProcess.py --loadTeacherFile data/teacher_inf.csv --loadStudentFile data/student_inf.csv
+```shell
+python3 preProcess.py
 ```
 
+重置所有楼栋状态（默认）
 
-
-传入待排考课表
-
-```python
-python main.py --class_inf classs_inf
+```bash
+python3 init_classroom_state.py 
 ```
 
+重置指定楼栋状态（支持单多选，中间用英文逗号隔开。）
 
+```
+python3 init_classroom_state.py --building 教学主楼,信工楼
+```
 
-有一些小问题
+生成排考表的命令行 其中**classs_inf** 是数据库中的待排课表，**信工楼**是除主教外的额外资源。
 
-在尝试写入数据库的时候，响应时间过长, 写得非常慢
+```shell
+python3 main.py --class_inf classs_inf --outputFile final.csv --building 信工楼
+```
 
-![image-20210429040353503](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20210429040353503.png)	
+### 文件结构一览
 
-这个问题我过会解决
+![image-20210502202158614](./photo/image-20210502202158614.png)	
+
+**必须建立在当前文件夹下建立 data 文件夹**
+
+初始化命令行之后 生成文件结构为
+
+![image-20210502202456637](./photo/image-20210502202456637.png)	
+
+其中 TeacherSource.csv 和 StudentSource.csv 记录了教师和学生的状态
+
+运行main.py 文件之后文件结构为
+
+![image-20210502203142426](./photo/image-20210502203142426.png)	
+
+其中 canntArrangeClass.csv 记录了找不到合适教室的班级情况
+
+### 示例
+
+所有的结果数据都将上传到数据库中。
+
+刚开始需要初始化，输入命令行 （默认加载全校老师和全部年级班级，但是算法会识别不同学院不同班级）
+
+```shell
+python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
+```
+
+或者使用默认设置
+
+```
+python3 preProcess.py
+```
+
+进行公共课排课，输入命令行
+
+```shell
+python3 main.py --class_inf commonClass --outputFile commonClass.csv --building 信工楼
+```
+
+其中无可用教室的写入文件（并上传同名文件到数据库中）（下图非唯一名称）
+
+![image-20210503214016378](./photo/image-20210503214016378.png)	
+
+生成对应排课结果为（并上传同名文件到数据库中）（下图非唯一名称）
+
+![image-20210503215124400](./photo/image-20210503215124400.png)	
+
+进行专业课排课，比如经管学院
+
+```shell
+python3 main.py --class_inf economy --outputFile economyClass.csv --building 外经楼
+```
+
+可再次进行专业课排课，比如信息工程学院
+
+```shell
+python3 main.py --class_inf informationEngineer --outputFile information.csv --building 信工楼
+```
