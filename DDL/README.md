@@ -99,7 +99,9 @@ python3 main.py --class_inf classs_inf --outputFile final.csv --building 信工�
 
 ### 示例
 
-刚开始需要初始化，输入命令行 
+所有的结果数据都将上传到数据库中。
+
+刚开始需要初始化，输入命令行 （默认加载全校老师和全部年级班级，但是算法会识别不同学院不同班级）
 
 ```shell
 python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_info --loadStudentYear 2020
@@ -117,11 +119,11 @@ python3 preProcess.py
 python3 main.py --class_inf commonClass --outputFile commonClass.csv --building 信工楼
 ```
 
-其中无可用教室的写入文件
+其中无可用教室的写入文件（并上传同名文件到数据库中）（下图非唯一名称）
 
 ![image-20210503214016378](./photo/image-20210503214016378.png)	
 
-生成对应排课结果为
+生成对应排课结果为（并上传同名文件到数据库中）（下图非唯一名称）
 
 ![image-20210503215124400](./photo/image-20210503215124400.png)	
 
@@ -136,6 +138,3 @@ python3 main.py --class_inf economy --outputFile economyClass.csv --building 外
 ```shell
 python3 main.py --class_inf informationEngineer --outputFile information.csv --building 信工楼
 ```
-
- 
-
