@@ -2,6 +2,8 @@ class Config:
     __period = 40
     __limited = 60
     __threshold = 100
+    __crRatio = 0.5
+    __crEffective = 1
     __host = '123.60.11.177'
     __port = '3306'
     __user = 'root'
@@ -19,6 +21,14 @@ class Config:
     @classmethod
     def get_threshold(cls):
         return cls.__threshold
+
+    @classmethod
+    def get_crRatio(cls):
+        return cls.__crRatio
+
+    @classmethod
+    def get_crEffective(cls):
+        return cls.__crEffective
 
     @classmethod
     def get_port(cls):
