@@ -41,9 +41,11 @@
 
 ​	![argsMeaning](./photo/argsMeaning.png)
 
-生成课表命令行参数含义如图所示
+主函数命令行参数含义如图所示，building 选项是除了主教以外，需要新增的楼栋资源。
 
-![image-20210502203116998](./photo/image-20210502203116998.png)	
+![image-20210508163324262](./photo/image-20210508163324262.png)初始化教室状态表，默认重置所有楼栋教室状态（慎用）。
+
+![image-20210508163115854](./photo/image-20210508163115854.png)
 
 **传参格式**
 
@@ -59,10 +61,22 @@ python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_
 python3 preProcess.py
 ```
 
-生成排课表的命令行 其中classs_inf 是数据库中的待排课表
+重置所有楼栋状态（默认）
+
+```bash
+python3 init_classroom_state.py 
+```
+
+重置指定楼栋状态（支持单多选，中间用英文逗号隔开。）
+
+```
+python3 init_classroom_state.py --building 教学主楼,信工楼
+```
+
+生成排考表的命令行 其中**classs_inf** 是数据库中的待排课表，**信工楼**是除主教外的额外资源。
 
 ```shell
-python3 main.py --class_inf classs_inf --outputFile final.csv
+python3 main.py --class_inf classs_inf --outputFile final.csv --building 信工楼
 ```
 
 ### 文件结构一览
@@ -100,7 +114,7 @@ python3 preProcess.py
 进行公共课排课，输入命令行
 
 ```shell
-python3 main.py --class_inf commonClass --outputFile commonClass.csv
+python3 main.py --class_inf commonClass --outputFile commonClass.csv --building 信工楼
 ```
 
 其中无可用教室的写入文件
@@ -114,13 +128,13 @@ python3 main.py --class_inf commonClass --outputFile commonClass.csv
 进行专业课排课，比如经管学院
 
 ```shell
-python3 main.py --class_inf economy --outputFile economyClass.csv
+python3 main.py --class_inf economy --outputFile economyClass.csv --building 外经楼
 ```
 
 可再次进行专业课排课，比如信息工程学院
 
 ```shell
-python3 main.py --class_inf informationEngineer --outputFile information.csv
+python3 main.py --class_inf informationEngineer --outputFile information.csv --building 信工楼
 ```
 
  
