@@ -126,6 +126,8 @@ def updateClassTime(dict, listclass, index):
     return dict
 
 
+
+
 def updateTeacherTime(dict, listclass, index, di):
     for classes in listclass:
         if classes == "-1":
@@ -461,3 +463,19 @@ def init_classroomState(building):
         with con.cursor() as cursor:
             cursor.execute(sql_init)
         con.commit()
+
+def giveUpClassTime(dict, listclass, index):
+    for classes in listclass:
+        dict[classes][index] = 1
+    return dict
+def giveUpCourseRange():
+    data = pd.read_csv("temp.csv", usecols=[1,2,4],header = None)
+    dictTeacherTime = csv2dict("TeacherSource.csv")
+    dictStudentTime = csv2dict("StudentSource.csv")
+    for index, student, teacher in zip(data[1],data[2],data[4]):
+        studentList = student.split(",")
+        teacherList = teacher.split(";")
+        giveUpClassTime(dictTeacherTime, teacherList, index)
+        giveUpClassTime(dictStudentTime, studentList, index)
+    dict2csv(dictTeacherTime, "TeacherSource.csv")
+    dict2csv(dictStudentTime, "StudentSource.csv")
