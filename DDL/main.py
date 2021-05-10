@@ -176,8 +176,33 @@ def main(args):
             fn.updateTeacherTime(dictTeacherTime, unitTeacher, _time, di)
     fn.dict2csv(dictTeacherTime, "TeacherSource.csv")
     fn.dict2csv(dictStudentTime, "StudentSource.csv")
+   
+    #==== 二次排老师 ====#
+    dictTeacherTime = fn.csv2dict("TeacherSource.csv")
+    # 开始二次排监考老师
+    dataAll = pd.read_csv("test//test2round.csv", header = None)   
+    Moniter2Round = []
+    for i in range(len(dataAll)):
+        # 这是要安排三个老师的
+        sameCollegeTeacher = dictCollegeTeacher[dataAll.iloc[i][5]]
+        time = dataAll.iloc[i][1]
+        firstTeacher = dataAll[4][i]
+        if dataAll.iloc[i][3] >= threshold:
+            Moniter2Round = fn.arrangeNewTeacher(Moniter2Round, i, 2, firstTeacher, dictTeacherTime, sameCollegeTeacher, time)
+        # 这个是 >= 60 的情况
+        else:
+            Moniter2Round = fn.arrangeNewTeacher(Moniter2Round, i, 1, firstTeacher, dictTeacherTime, sameCollegeTeacher, time)
 
-    #===== 连接数据库=====#
+    dataAll[4] = Moniter2Round
+    dataAll.to_csv("ArrangeTest.csv", index = False, header = False)
+
+
+
+
+
+
+
+    #===== 连接数据库 =====#
     temp = pd.read_csv("./temp.csv",
                        names=[
                            "ci_course_no", "test_time", "ci_class_name",
