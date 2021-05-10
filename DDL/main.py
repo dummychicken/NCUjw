@@ -180,7 +180,7 @@ def main(args):
     #==== 二次排老师 ====#
     dictTeacherTime = fn.csv2dict("TeacherSource.csv")
     # 开始二次排监考老师
-    dataAll = pd.read_csv("test//test2round.csv", header = None)   
+    dataAll = pd.read_csv("temp.csv", header = None)   
     Moniter2Round = []
     for i in range(len(dataAll)):
         # 这是要安排三个老师的
@@ -194,12 +194,7 @@ def main(args):
             Moniter2Round = fn.arrangeNewTeacher(Moniter2Round, i, 1, firstTeacher, dictTeacherTime, sameCollegeTeacher, time)
 
     dataAll[4] = Moniter2Round
-    dataAll.to_csv("ArrangeTest.csv", index = False, header = False)
-
-
-
-
-
+    dataAll.to_csv("temp.csv", index = False, header = False)
 
 
     #===== 连接数据库 =====#
