@@ -474,8 +474,28 @@ def giveUpCourseRange():
     dictStudentTime = csv2dict("StudentSource.csv")
     for index, student, teacher in zip(data[1],data[2],data[4]):
         studentList = student.split(",")
-        teacherList = teacher.split(";")
+        teacherList = teacher.split(":")
         giveUpClassTime(dictTeacherTime, teacherList, index)
         giveUpClassTime(dictStudentTime, studentList, index)
     dict2csv(dictTeacherTime, "TeacherSource.csv")
     dict2csv(dictStudentTime, "StudentSource.csv")
+
+
+def arrangeNewTeacher(moniterTeacherList,index, round, firstTeacher, dictTeacherTime,sameCollegeTeacher, time):    
+    strTeachers = ""
+    flag = 0
+    for i in range(round):
+        for teacher in sameCollegeTeacher:
+            if dictTeacherTime[teacher][time] == 1:
+                # 更新老师的时间
+                updateClassTime(dictTeacherTime, [teacher], time)
+                # 另外选取round个老师
+                strTeachers =  strTeachers  + ":"  + teacher 
+                flag += 1
+                break
+    if flag != round:
+        print("监考老师不足" + index)
+    strTeachers = firstTeacher + strTeachers
+    moniterTeacherList.append(strTeachers)
+    return moniterTeacherList
+
