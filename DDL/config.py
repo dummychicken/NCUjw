@@ -1,8 +1,8 @@
 class Config:
     __period = 40
     __limited = 60
-    __threshold = 100
-    __crRatio = 0.5
+    __threshold = 70
+    __crRatio = 0.1
     __crEffective = 1
     __host = '123.60.11.177'
     __port = '3306'

@@ -50,11 +50,13 @@ def findCommonTime(temp, listClass):
 def optimalTime(temp):
     temp_list_hfday = [temp[i:i + 2] for i in range(0, len(temp), 2)]
     temp_list_oneday = [temp[i:i + 4] for i in range(0, len(temp), 4)]
-    for inx, val in enumerate(temp_list_oneday):
-        if sum(val) < 4:
+    od = np.random.choice(len(temp) // 4, len(temp) // 4, replace=False)
+    for i in od:
+    #for inx, val in enumerate(temp_list_oneday):
+        if sum(temp_list_oneday[i]) < 4:
             continue
         else:
-            return inx * 4 + np.random.randint(0, 4)
+            return i * 4 + np.random.randint(0, 4)
     rd = np.random.choice(len(temp) // 2, len(temp) // 2, replace=False)
     for i in rd:
         if sum(temp_list_hfday[i]) < 2:
@@ -119,7 +121,7 @@ def writeToCsv(time, course, classes, number, teacher, college):
                 header=False)
 
 
-# 讲已经排考成功的1修改成0, 如[1,1,1,1]->[0,1,1,1] 维护表
+# 将已经排考成功的1修改成0, 如[1,1,1,1]->[0,1,1,1] 维护表
 def updateClassTime(dict, listclass, index):
     for classes in listclass:
         dict[classes][index] = 0
@@ -342,7 +344,6 @@ def get_columns(info_COLUMNS):
         lst.append(i[0])
     return lst
 
-
 def get_dm_classroom_state_new(res):
     cr_building = []
     cr_name = []
@@ -359,9 +360,6 @@ def get_dm_classroom_state_new(res):
     dm_classroom_state_new["cr_state"] = 1
     return dm_classroom_state_new.reset_index().rename(
         columns={"index": "state_id"})
-
-
-
 
 def fill_bz(new_D, room_name, test_time):
     new_D.loc[(new_D.cr_name == room_name) & (new_D.mti_no == test_time), "cr_state"] = 0
@@ -398,39 +396,104 @@ def get_test_time_room(new_D, test_time):
 def schedule_algorithm(D, temp, dict_tmp_c):
     cannt_find_class_id = []
     preList = list(dict_tmp_c)
-    for preCourse in preList:
-        idx_list = dict_tmp_c[preCourse]
-        cou_len = len(idx_list)
-        tmp_room = []
-        for i, cl_num, test_time in zip(dict_tmp_c[preCourse], temp["ci_student_number"][idx_list[0] : idx_list[-1] + 1], temp["test_time"][idx_list[0] : idx_list[-1] + 1]):
-            flag = 1
-            test_time_room = sorted(get_test_time_room(D, test_time))
-            com_res = []
-            pri_res = []
-            for res in test_time_room:
-                if re.match('教',res):
-                    com_res.append(res)
-                else:
-                    pri_res.append(res)
-            if len(com_res) >= cou_len:
-                for room_name in com_res:
-                    if classroom_isbz(D, room_name, test_time) and student_num_fit(D, room_name, cl_num) and room_name not in tmp_room:
-                        fill_bz(D, room_name, test_time)
-                        change_state_id(D, room_name, test_time, i)
-                        flag = 0
-                        tmp_room.append(room_name)
-                        break
-            elif len(pri_res) >= cou_len:
-                for room_name in pri_res:
-                    if classroom_isbz(D, room_name, test_time) and student_num_fit(D, room_name, cl_num) and room_name not in tmp_room:
-                        fill_bz(D, room_name, test_time)
-                        change_state_id(D, room_name, test_time, i)
-                        flag = 0
-                        tmp_room.append(room_name)
-                        break
-            if flag == 1:
+    for preCourse in preList: # 循环遍历本次排考的课程
+        #print("----------------------------------------------------------------------")
+        #print(preCourse)
+        idx_list = sorted(dict_tmp_c[preCourse]) # 课程在中间表的 index 列表
+        #print(idx_list)
+        st_idx = idx_list[0]
+        end_idx = idx_list[-1] + 1
+        test_time = temp["test_time"][st_idx]
+        #print("test_time: ",test_time)
+        #print("free: ",len(get_test_time_room(D, test_time)))
+        #print("have: ",len(idx_list))
+        # 第一次安排教室，优先使用私有资源，不足则使用主教，如果都不能满足则无法安排考场。
+        flag_building, tmp_room, index_1 = Course_schedule_algorithm(D, temp, idx_list, st_idx, end_idx, 0)
+        # 满足需求，写入结果
+        if flag_building == 3:
+            for r, i in zip(tmp_room, index_1):
+                fill_bz(D, r, test_time)
+                change_state_id(D, r, test_time, i)
+        # 私有资源不足，使用公共资源安排。
+        elif flag_building  == 1:
+            flag_building_1, tmp_room_1, index_1_1 = Course_schedule_algorithm(D, temp, idx_list, st_idx, end_idx, 2)
+            if len(idx_list) == len(tmp_room_1):
+                for r, i in zip(tmp_room_1, index_1_1):
+                    fill_bz(D, r, test_time)
+                    change_state_id(D, r,test_time, i)
+                #print("课程{}已安排教室考试。".format(temp["ci_course_no"][i]))
+            else:
+                for i in idx_list:
+                    cannt_find_class_id.append(i)
+                print("课程{}无法找到合适的资源分配。".format(temp["ci_course_no"][idx_list[0]]))
+        # 资源不足
+        elif flag_building == 2:
+            for i in idx_list:
                 cannt_find_class_id.append(i)
+            print("课程{}无法找到合适的资源分配。".format(temp["ci_course_no"][idx_list[0]]))
     return D, cannt_find_class_id
+
+#cannt_find_class_id.append(i)
+
+def Course_schedule_algorithm(D, temp, idx_list,st_idx, end_idx, flag):
+    tmp_room = []
+    cou_len = len(idx_list)
+    flag_building = flag
+    #print(cou_len,st_idx,end_idx)
+    flag = 1
+    index_1 = []
+    test_time = temp["test_time"][st_idx]
+    pri_res = []
+    com_res = []
+    test_time_room = sorted(get_test_time_room(D, test_time))
+    # 区分主教和私有资源
+    for res in test_time_room:
+        if re.match('教',res):
+            com_res.append(res)
+        else:
+            pri_res.append(res)
+    #print("pri com ",len(pri_res),len(com_res))
+    # 循环迭代传入课程的学生数量
+    for i, cl_num in zip(idx_list, temp["ci_student_number"][st_idx : end_idx]):
+        #print(i,cl_num,test_time)
+        # 判断私有可用教室数量大于或等于课程待排班级数
+        if len(pri_res) >= cou_len and flag_building != 2:
+            for room_name in pri_res:
+                if student_num_fit(D, room_name, cl_num) and room_name not in tmp_room:
+                    #fill_bz(D, room_name, test_time)
+                    #change_state_id(D, room_name, test_time, i)
+                    flag = 0
+                    flag_building = 1
+                    index_1.append(i)
+                    tmp_room.append(room_name)
+                    break
+        # 在私有教室不足时，判断公共可用教室数量大于或等于课程待排班级数            
+        elif len(com_res) >= cou_len and flag_building != 1:
+            for room_name in com_res:
+                if student_num_fit(D, room_name, cl_num) and room_name not in tmp_room:
+                    #fill_bz(D, room_name, test_time)
+                    #change_state_id(D, room_name, test_time, i)
+                    flag = 0
+                    flag_building = 2
+                    index_1.append(i)
+                    tmp_room.append(room_name)
+                    break
+    # 私有资源不足               
+    if flag == 0 and flag_building == 1 and len(index_1) < cou_len: 
+        #print("资源不足，{}将安排到教学主楼。".format(temp["ci_course_no"][i]))
+        return flag_building, tmp_room, index_1
+    # 私有资源不足且公共资源不足
+    elif flag == 0 and flag_building == 2 and len(index_1) < cou_len:
+        print("资源不足，{}无法完成排考。".format(temp["ci_course_no"][i]))
+        return flag_building, tmp_room, index_1
+    # 已安排和待安排考场数量相等，满足需求。
+    elif flag == 0 and len(index_1) == cou_len:
+        #print("flag_building: {}, tmp_room: {}, index_1: {}".format(flag_building, tmp_room, index_1))
+        flag_building = 3
+        return flag_building, tmp_room, index_1
+    else:
+        flag_building = 2
+        return flag_building, tmp_room, index_1
 
 @contextmanager
 def get_connection():
@@ -449,16 +512,20 @@ def SyncBuildingState(dfSyncdata):
     list_df = []
     for name, mti in zip(dfSyncdata["cr_name"],dfSyncdata["mti_no"]):
         list_df.append((name,mti))
-    sql_Sync = "update dm_classroom_state_new set cr_state = '0' where cr_name = %s and mti_no = '%s'"
+    sql_Sync = "update dm_classroom_state_new set cr_state = 0 where cr_name = %s and mti_no = '%s'"
     with get_connection() as con:
         with con.cursor() as cursor:
             cursor.executemany(sql_Sync,list_df)
         con.commit()
+        print("教室资源同步成功。")
 
 def init_classroomState(building):
     list_b = []
     list_b.extend(building.split(","))
-    sql_init = "UPDATE dm_classroom_state_new SET cr_state = 1 WHERE cr_building in " + str(tuple(list_b))
+    if len(list_b) > 1:
+        sql_init = "UPDATE dm_classroom_state_new SET cr_state = 1 WHERE cr_building in " + str(tuple(list_b))
+    else:
+        sql_init = "UPDATE dm_classroom_state_new SET cr_state = 1 WHERE cr_building in " + str(tuple(list_b))[:-2] + ")"
     with get_connection() as con:
         with con.cursor() as cursor:
             cursor.execute(sql_init)
@@ -468,18 +535,36 @@ def giveUpClassTime(dict, listclass, index):
     for classes in listclass:
         dict[classes][index] = 1
     return dict
-def giveUpCourseRange():
-    data = pd.read_csv("temp.csv", usecols=[1,2,4],header = None)
+
+def giveUp_SyncBuildingState(dfSyncdata):
+    list_df = []
+    for name, mti in zip(dfSyncdata["cr_name"],dfSyncdata["test_time"]):
+        list_df.append((name,mti))
+    sql_Sync = "update dm_classroom_state_new set cr_state = 1 where cr_name = %s and mti_no = '%s'"
+    with get_connection() as con:
+        with con.cursor() as cursor:
+            cursor.executemany(sql_Sync,list_df)
+        con.commit()
+
+def executeSQL(sql):
+    with get_connection() as con:
+        with con.cursor() as cursor:
+            cursor.execute(sql)
+        con.commit()
+
+def giveUpCourseRange(sql):
+    data = getDF(sql)
+    #data = pd.read_csv(res_file, usecols = [2,3,5,6],skiprows = 1, header = None)
     dictTeacherTime = csv2dict("TeacherSource.csv")
     dictStudentTime = csv2dict("StudentSource.csv")
-    for index, student, teacher in zip(data[1],data[2],data[4]):
+    for index, student, teacher in zip(data["test_time"],data["ci_class_name"],data["ci_teacher_name"]):
         studentList = student.split(",")
         teacherList = teacher.split(":")
         giveUpClassTime(dictTeacherTime, teacherList, index)
         giveUpClassTime(dictStudentTime, studentList, index)
+    giveUp_SyncBuildingState(data)
     dict2csv(dictTeacherTime, "TeacherSource.csv")
     dict2csv(dictStudentTime, "StudentSource.csv")
-
 
 def arrangeNewTeacher(moniterTeacherList,index, round, firstTeacher, dictTeacherTime,sameCollegeTeacher, time):    
     strTeachers = ""
@@ -498,4 +583,3 @@ def arrangeNewTeacher(moniterTeacherList,index, round, firstTeacher, dictTeacher
     strTeachers = firstTeacher + strTeachers
     moniterTeacherList.append(strTeachers)
     return moniterTeacherList
-

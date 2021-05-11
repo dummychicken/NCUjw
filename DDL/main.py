@@ -7,6 +7,7 @@ import pandas as pd
 import argparse
 import pymysql
 import warnings
+
 warnings.filterwarnings("ignore")
 import function as fn
 
@@ -23,21 +24,19 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--loadCourseFile", default="class.csv", type=str, required=False, help="输入待排课表位置"
     )'''
-
+#, default="classs_inf" ,default="排考最终结果.csv"
 parser.add_argument("--class_inf",
-                    default="classs_inf",
                     type=str,
-                    required=False,
-                    help="待输入排考表名")
-
+                    required=True,
+                    help="待输入排考表名, 例如：classs_inf")
+'''
 parser.add_argument("--outputFile",
-                    default="排考最终结果.csv",
                     type=str,
-                    required=False,
-                    help="输入输出文件名")
+                    required=True,
+                    help="输入输出文件名，例如：排考最终结果.csv")'''
 
 parser.add_argument("--building",
-                    default="信工楼",
+                    default="",
                     type=str,
                     required=False,
                     help="输入指定楼栋资源名称(例如：教学主楼，外经楼，法学楼，人文楼，建工楼，机电楼，信工楼，材料楼，环境楼，理生楼)")
@@ -45,19 +44,18 @@ parser.add_argument("--building",
 args = parser.parse_args()
 
 
-
 def main(args):
     with open("temp.csv", "w") as f:
         csv_write = csv.writer(f)
         csv_write.writerow([])
-    sql = "select ci_course_no,ci_teacher_name,ci_class_name,ci_student_number,ci_class_dep from " + args.class_inf + " where ci_teacher_name != ' ' and ci_class_dep = '信工学院'"
-
+    sql = "select ci_course_no,ci_teacher_name,ci_class_name,ci_student_number,ci_class_dep from " + args.class_inf + " where ci_teacher_name != ' '" 
+    # print("get data successfully")
     data = fn.getDF(sql)
-    #data = pd.read_csv(args.loadCourseFile, usecols=["ci_course_no","ci_class_name","ci_student_number","ci_teacher_name","ci_class_dep"])
+    # data = pd.read_csv(args.loadCourseFile, usecols=["ci_course_no","ci_class_name","ci_student_number","ci_teacher_name","ci_class_dep"])
 
-    # 数据预处理模板 拆分同一行内按类似“1-3”的班级
+    #数据预处理模板 拆分同一行内按类似“1-3”的班级
     data["ci_class_name"] = data["ci_class_name"].apply(fn.pre_split_class)
-
+    # print("preprocess successfully")
     # 读取当前资源表
     dictTeacherTime = fn.csv2dict("TeacherSource.csv")
     dictStudentTime = fn.csv2dict("StudentSource.csv")
@@ -154,7 +152,7 @@ def main(args):
         di = 0
         if len(unitTeacher) < courseNumber[1]:
             di = courseNumber[1] - len(unitTeacher)
-            print(courseNumber[0] + "课程，当前老师不足，缺少" + str(di) + "个，用\"-1\"代替")
+            print(courseNumber[0] + "课程，当前老师不足，缺少" + str(di) + "个，用-1代替")
             di_list = ["-1"] * di
             unitTeacher.extend(di_list)
 
@@ -174,11 +172,9 @@ def main(args):
             # 更新老师班级的时间表
             fn.updateClassTime(dictStudentTime, unitClass, _time)
             fn.updateTeacherTime(dictTeacherTime, unitTeacher, _time, di)
-    fn.dict2csv(dictTeacherTime, "TeacherSource.csv")
-    fn.dict2csv(dictStudentTime, "StudentSource.csv")
-   
+
     #==== 二次排老师 ====#
-    dictTeacherTime = fn.csv2dict("TeacherSource.csv")
+    #dictTeacherTime = fn.csv2dict("TeacherSource.csv")
     # 开始二次排监考老师
     dataAll = pd.read_csv("temp.csv", header = None)   
     Moniter2Round = []
@@ -187,7 +183,7 @@ def main(args):
         sameCollegeTeacher = dictCollegeTeacher[dataAll.iloc[i][5]]
         time = dataAll.iloc[i][1]
         firstTeacher = dataAll[4][i]
-        if dataAll.iloc[i][3] >= threshold:
+        if dataAll.iloc[i][3] > threshold:
             Moniter2Round = fn.arrangeNewTeacher(Moniter2Round, i, 2, firstTeacher, dictTeacherTime, sameCollegeTeacher, time)
         # 这个是 >= 60 的情况
         else:
@@ -197,7 +193,7 @@ def main(args):
     dataAll.to_csv("temp.csv", index = False, header = False)
 
 
-    #===== 连接数据库 =====#
+    #===== 连接数据库=====#
     temp = pd.read_csv("./temp.csv",
                        names=[
                            "ci_course_no", "test_time", "ci_class_name",
@@ -210,11 +206,15 @@ def main(args):
     dm_classroom_state_new = fn.getDF(sql_res)
 
     D = dm_classroom_state_new
-
-    PreCollege = args.building
+    
     Commen_building = D[D["cr_building"] == "教学主楼"]
-    Private_building = D[D["cr_building"] == PreCollege]
-    UsedRe = Commen_building.append(Private_building)
+
+    if len(args.building) > 0:
+        PreCollege = args.building
+        Private_building = D[D["cr_building"] == PreCollege]
+        UsedRe = Private_building.append(Commen_building)
+    else:
+        UsedRe = Commen_building
 
     # 课程 -> index 字典
     tmp_c = pd.DataFrame(temp,columns=["ci_course_no","index"])
@@ -222,14 +222,13 @@ def main(args):
 
     PreCollegeAllData, cannt_find_class_id = fn.schedule_algorithm(
         UsedRe, temp, dict_tmp_c)
+    
     PreCollegeoutdata = PreCollegeAllData[PreCollegeAllData.cr_state == 0]
     
     dfoutdata = PreCollegeoutdata
     dfcannt_find_class_id = cannt_find_class_id
     dfSyncdata = dfoutdata
 
-    # 同步教室资源状态
-    fn.SyncBuildingState(dfSyncdata)
 
     dfoutdata = dfoutdata.rename(columns={"state_id": "index"})
     df = pd.merge(temp, dfoutdata, how='inner',
@@ -237,15 +236,45 @@ def main(args):
     cannt_temp = temp[temp.apply(lambda x: x[0] in dfcannt_find_class_id,
                                  axis=1)]
 
-    df.to_csv(args.outputFile)
-    cannt_temp.to_csv("canntArrangeClass.csv", mode="a")
-    print(ti.time() - st_time)
+    res_name = args.class_inf + "_res"
+    cannt_name = args.class_inf + "_cannt"
 
-    return print("Exam ready")
+    if int(df.shape[0] + cannt_temp.shape[0]) != int(temp.shape[0]):
+        print("Error: 排考错误，存在遗失课程。")
+
+
+    #===== 排考结果同步并更新资源 =====#
+    try:
+        # 写入本地csv文件
+        df.to_csv(res_name + ".csv")
+        cannt_temp.to_csv(cannt_name + ".csv")
+
+        # 更新老师和班级状态表
+        fn.dict2csv(dictTeacherTime, "TeacherSource.csv")
+        fn.dict2csv(dictStudentTime, "StudentSource.csv")
+    except:
+        print("排考结果写入本地失败，请重新排考。")
+    else:
+        # 同步教室资源状态
+        fn.SyncBuildingState(dfSyncdata)
+
+        # 将结果上传到数据库中
+        fn.uploadCsv(res_name + ".csv")
+        fn.uploadCsv(cannt_name + ".csv")
+
+    return print("Cost Time: {}s , Exam complete.".format(str(ti.time() - st_time)[:3]))
+
 
 if __name__ == "__main__":
-    main(args)
+    bu = ["","教学主楼","外经楼","法学楼","人文楼","建工楼","机电楼","信工楼","材料楼","环境楼","理生楼"]
+    if args.building not in bu:
+        print("--building 参数输入的楼栋名称不符合规范，请重新输入。")
+        print("教学主楼,外经楼,法学楼,人文楼,建工楼,机电楼,信工楼,材料楼,环境楼,理生楼")
+    else:    
+        main(args)
 
 # 此处由于写入数据库速度过慢, 先注掉
 # fn.uploadCsv("TeacherSource.csv")
 # fn.uploadCsv("StudentSource.csv")
+
+#print(ti.time() - st_time)
