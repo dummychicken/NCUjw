@@ -112,6 +112,11 @@ python3 preProcess.py --loadTeacherTable teacher_inf --loadStudentTable student_
 ```
 python3 preProcess.py
 ```
+对指定时段课程进行排考
+
+```shell
+python3 commonCourseArrange.py
+```
 
 重置所有楼栋状态（默认）
 
