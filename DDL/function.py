@@ -102,7 +102,7 @@ def optimalTime(temp):
 
 
 # 将结果写入表中
-def writeToCsv(time, course, classes, number, teacher, college):
+def writeToCsv(time, course, classes, number, teacher, college, file):
     course = [course] * len(classes)
     time = [time] * len(classes)
     college = [college[0]] * len(classes)
@@ -114,7 +114,7 @@ def writeToCsv(time, course, classes, number, teacher, college):
         "监考老师": teacher,
         "开课学院": college
     })
-    test.to_csv("temp.csv",
+    test.to_csv(file,
                 encoding="utf-8",
                 mode="a",
                 index=None,
@@ -575,11 +575,11 @@ def arrangeNewTeacher(moniterTeacherList,index, round, firstTeacher, dictTeacher
                 # 更新老师的时间
                 updateClassTime(dictTeacherTime, [teacher], time)
                 # 另外选取round个老师
-                strTeachers =  strTeachers  + ":"  + teacher 
+                strTeachers =  str(strTeachers)  + ":"  + str(teacher) 
                 flag += 1
                 break
     if flag != round:
-        print("监考老师不足" + index)
-    strTeachers = firstTeacher + strTeachers
+        print("监考老师不足" + str(index))
+    strTeachers = str(firstTeacher) + strTeachers
     moniterTeacherList.append(strTeachers)
     return moniterTeacherList

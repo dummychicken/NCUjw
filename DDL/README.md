@@ -150,3 +150,4 @@ python3 main.py --class_inf economy --outputFile economyClass.csv --building 外
 ```shell
 python3 main.py --class_inf informationEngineer --outputFile information.csv --building 信工楼
 ```
+

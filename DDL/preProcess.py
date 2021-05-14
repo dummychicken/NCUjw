@@ -92,7 +92,8 @@ def main():
 
     sqlTeacher = "select * from mid_teacherorder"
     dataTeacher = fn.getDF(sqlTeacher)
-
+    sqlCourse = "select * from mid_courseorder"
+    dataCourse = fn.getDF(sqlCourse)
     # 读取数据库中的表格, 并且转化为csv文件
     student_inf = from_mysql_get_all_info(args.loadStudentYear,
                                           args.loadStudentTable)
@@ -100,7 +101,7 @@ def main():
     write2csv("student_inf", student_inf)
     write2csv("teacher_inf", teacher_inf)
     dataTeacher.to_csv("data/mid_teacherorder.csv")
-
+    dataCourse.to_csv("data/mid_courseorder.csv")
     # 将csv文件转化为字典, 并且初始化资源池
     teacherDict = initialSourceDict("data/teacher_inf.csv", period)
     studentDict = initialSourceDict("data/student_inf.csv", period)
@@ -108,7 +109,7 @@ def main():
     dict2csv(studentDict, "StudentSource.csv")
 
     #==== 对不监考的教师处理 ===#
-    # 生成编号老师的字典
+    # 生成监考老师的字典
     data = pd.read_csv("data//teacher_inf.csv", header=None, usecols=[0, 1])
     dataTeacherMonitor = pd.read_csv("data/mid_teacherorder.csv",
                                      converters={
@@ -128,7 +129,9 @@ def main():
 
     dict2csv(dictTeacherTime, "TeacherSource.csv")
     print("初始化教师，班级状态成功。")
-
+    
+    #===== 对选定时间的公共课排考 ====#
+    data = pd.read_csv("data//mid_course.csv", header=None, usecols=[2, 4])
 
 if __name__ == "__main__":
     main()
